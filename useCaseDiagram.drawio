@@ -1,11 +1,11 @@
 <mxfile host="65bd71144e">
     <diagram id="YbCiVr_ezjesdckZBkC4" name="Page-1">
-        <mxGraphModel dx="1048" dy="569" grid="1" gridSize="10" guides="1" tooltips="1" connect="0" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="983" dy="534" grid="1" gridSize="10" guides="1" tooltips="1" connect="0" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
                 <mxCell id="2" value="Système EasyColoc" style="swimlane;whiteSpace=wrap;html=1;startSize=23;" vertex="1" parent="1">
-                    <mxGeometry x="840" width="660" height="1160" as="geometry"/>
+                    <mxGeometry x="840" width="660" height="1310" as="geometry"/>
                 </mxCell>
                 <mxCell id="25" value="Quitter la Colocation" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="2">
                     <mxGeometry x="311.8" y="780" width="160" height="70" as="geometry"/>
@@ -86,6 +86,12 @@
                     <mxGeometry x="-0.117" y="2" relative="1" as="geometry">
                         <mxPoint as="offset"/>
                     </mxGeometry>
+                </mxCell>
+                <mxCell id="59" value="Gerer les categories" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="2">
+                    <mxGeometry x="100" y="1150" width="160" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="60" style="edgeStyle=none;html=1;entryX=0.046;entryY=0.687;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="2" source="33" target="59">
+                    <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="26" value="User" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
                     <mxGeometry x="780" y="320" width="30" height="60" as="geometry"/>
