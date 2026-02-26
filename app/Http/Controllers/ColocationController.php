@@ -3,16 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Colocation;
-use App\Http\Requests\StoreColocationRequest;
-use App\Http\Requests\UpdateColocationRequest;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Gate;
 
 class ColocationController extends Controller
 {
-    /**
-     * Display a listing of user's colocations
-     */
     public function index()
     {
         $colocations = auth()->user()
@@ -27,25 +22,23 @@ class ColocationController extends Controller
         return view('colocations.index', compact('colocations'));
     }
 
-    /**
-     * Show the form for creating a new colocation
-     */
     public function create()
     {
         return view('colocations.create');
     }
 
-    /**
-     * Store a newly created colocation
-     */
-    public function store(StoreColocationRequest $request)
+    public function store(Request $request)
     {
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
         try {
             $colocation = DB::transaction(function () use ($request) {
-                // Create colocation
-                $colocation = Colocation::create($request->validated());
+                $colocation = Colocation::create([
+                    'name' => $request->name,
+                ]);
                 
-                // Add creator as owner
                 $colocation->memberships()->create([
                     'user_id' => auth()->id(),
                     'role' => 'owner',
@@ -62,45 +55,36 @@ class ColocationController extends Controller
         } catch (\Exception $e) {
             return back()
                 ->withInput()
-                ->with('error', 'Failed to create colocation. Please try again.');
+                ->with('error', 'Failed to create colocation: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Display the specified colocation
-     */
     public function show(Colocation $colocation)
     {
-        // Authorization check
         abort_unless($colocation->isMember(auth()->user()), 403);
 
-        $colocation->load([
-            'memberships.user',
-            'expenses.payer',
-            'expenses.category'
-        ]);
+        $colocation->load(['memberships.user', 'expenses']);
 
         return view('colocations.show', compact('colocation'));
     }
 
-    /**
-     * Show the form for editing the specified colocation
-     */
     public function edit(Colocation $colocation)
     {
-        // Only owners can edit
         abort_unless($colocation->isOwner(auth()->user()), 403);
 
         return view('colocations.edit', compact('colocation'));
     }
 
-    /**
-     * Update the specified colocation
-     */
-    public function update(UpdateColocationRequest $request, Colocation $colocation)
+    public function update(Request $request, Colocation $colocation)
     {
+        abort_unless($colocation->isOwner(auth()->user()), 403);
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
         try {
-            $colocation->update($request->validated());
+            $colocation->update(['name' => $request->name]);
 
             return redirect()
                 ->route('colocations.show', $colocation)
@@ -109,27 +93,18 @@ class ColocationController extends Controller
         } catch (\Exception $e) {
             return back()
                 ->withInput()
-                ->with('error', 'Failed to update colocation. Please try again.');
+                ->with('error', 'Failed to update colocation.');
         }
     }
 
-    /**
-     * Remove the specified colocation (soft delete by changing status)
-     */
     public function destroy(Colocation $colocation)
     {
-        // Only owners can delete
         abort_unless($colocation->isOwner(auth()->user()), 403);
 
         try {
             DB::transaction(function () use ($colocation) {
-                // Mark as cancelled instead of hard delete
                 $colocation->update(['status' => 'cancelled']);
-                
-                // Mark all memberships as left
-                $colocation->memberships()
-                    ->whereNull('left_at')
-                    ->update(['left_at' => now()]);
+                $colocation->memberships()->whereNull('left_at')->update(['left_at' => now()]);
             });
 
             return redirect()
@@ -137,8 +112,7 @@ class ColocationController extends Controller
                 ->with('success', 'Colocation cancelled successfully!');
                 
         } catch (\Exception $e) {
-            return back()
-                ->with('error', 'Failed to cancel colocation. Please try again.');
+            return back()->with('error', 'Failed to cancel colocation.');
         }
     }
 }
