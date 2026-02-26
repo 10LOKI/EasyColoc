@@ -5,23 +5,23 @@
         <div class="flex items-start justify-between">
             <div class="flex-1">
                 <h3 class="text-lg font-semibold text-gray-900">{{ $colocation->name }}</h3>
-                <p class="mt-1 text-sm text-gray-500">{{ $colocation->address }}</p>
+                <p class="mt-1 text-sm text-gray-500">Code: {{ $colocation->invite_code }}</p>
             </div>
             <x-ui.badge variant="info">
-                {{ $colocation->memberships_count ?? 0 }} members
+                {{ $colocation->memberships_count ?? $colocation->memberships->count() }} members
             </x-ui.badge>
         </div>
         
         <div class="mt-4 flex items-center justify-between">
             <div class="flex -space-x-2">
-                @foreach($colocation->memberships->take(3) ?? [] as $membership)
+                @foreach(($colocation->memberships ?? collect())->take(3) as $membership)
                 <div class="inline-block h-8 w-8 rounded-full ring-2 ring-white bg-gray-300 flex items-center justify-center text-xs font-medium text-gray-700">
                     {{ substr($membership->user->name, 0, 1) }}
                 </div>
                 @endforeach
-                @if(($colocation->memberships_count ?? 0) > 3)
+                @if(($colocation->memberships_count ?? $colocation->memberships->count()) > 3)
                 <div class="inline-block h-8 w-8 rounded-full ring-2 ring-white bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-600">
-                    +{{ $colocation->memberships_count - 3 }}
+                    +{{ ($colocation->memberships_count ?? $colocation->memberships->count()) - 3 }}
                 </div>
                 @endif
             </div>

@@ -26,29 +26,6 @@
                         <x-input-error class="mt-2" :messages="$errors->get('name')" />
                     </div>
 
-                    <div>
-                        <x-input-label for="address" value="Address" />
-                        <x-text-input 
-                            id="address" 
-                            name="address" 
-                            type="text" 
-                            class="mt-1 block w-full" 
-                            :value="old('address', $colocation->address ?? '')" 
-                        />
-                        <x-input-error class="mt-2" :messages="$errors->get('address')" />
-                    </div>
-
-                    <div>
-                        <x-input-label for="description" value="Description" />
-                        <textarea 
-                            id="description" 
-                            name="description" 
-                            rows="3"
-                            class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                        >{{ old('description', $colocation->description ?? '') }}</textarea>
-                        <x-input-error class="mt-2" :messages="$errors->get('description')" />
-                    </div>
-
                     <div class="flex items-center justify-between">
                         <form method="POST" action="{{ route('colocations.destroy', $colocation) }}">
                             @csrf

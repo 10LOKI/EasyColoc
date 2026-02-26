@@ -15,16 +15,6 @@ class StoreColocationRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'address' => ['nullable', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:1000'],
-        ];
-    }
-
-    public function messages(): array
-    {
-        return [
-            'name.required' => 'The colocation name is required.',
-            'name.max' => 'The colocation name cannot exceed 255 characters.',
         ];
     }
 }

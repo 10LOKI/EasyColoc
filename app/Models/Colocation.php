@@ -7,11 +7,13 @@ use Illuminate\Support\Str;
 
 class Colocation extends Model
 {
-    protected $fillable = ['name','status'];
+    protected $fillable = ['name', 'status'];
 
-    protected $casts = ['created_at' => 'datetime' , 'updated_at' => 'datetime',];
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
 
-    // Auto-generate invite code
     protected static function boot()
     {
         parent::boot();
@@ -23,7 +25,6 @@ class Colocation extends Model
         });
     }
 
-    // Relationships
     public function memberships()
     {
         return $this->hasMany(Membership::class);
@@ -41,13 +42,11 @@ class Colocation extends Model
         return $this->hasMany(Expense::class);
     }
 
-    // Scopes
     public function scopeActive($query)
     {
         return $query->where('status', 'active');
     }
 
-    // Helper Methods
     public function isOwner(User $user): bool
     {
         return $this->memberships()

@@ -19,7 +19,6 @@ class Membership extends Model
         'left_at' => 'datetime',
     ];
 
-    // Relationships
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -30,7 +29,6 @@ class Membership extends Model
         return $this->belongsTo(Colocation::class);
     }
 
-    // Scopes
     public function scopeActive($query)
     {
         return $query->whereNull('left_at');
