@@ -23,6 +23,7 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
+            {{-- Stats --}}
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
                 <x-ui.stat-card 
                     title="Total Members" 
@@ -46,6 +47,39 @@
                 />
             </div>
 
+            {{-- Invitation Code --}}
+            @if($colocation->isOwner(auth()->user()) || $colocation->isMember(auth()->user()))
+            <x-ui.card title="Invite Members">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600 mb-2">Share this code with your roommates:</p>
+                        <div class="flex items-center gap-3">
+                            <code id="invite-code" class="text-2xl font-mono font-bold text-indigo-600 tracking-widest">
+                                {{ $colocation->invite_code }}
+                            </code>
+                            <button 
+                                onclick="copyInviteCode()"
+                                class="inline-flex items-center px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-md transition"
+                            >
+                                <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                </svg>
+                                Copy
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">
+                            Or share this link: 
+                            <a href="{{ route('invitations.show') }}?code={{ $colocation->invite_code }}" 
+                               class="text-indigo-600 hover:text-indigo-500">
+                                {{ route('invitations.show') }}?code={{ $colocation->invite_code }}
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </x-ui.card>
+            @endif
+
+            {{-- Members & Expenses --}}
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
                 <div class="lg:col-span-1">
@@ -67,12 +101,6 @@
                                 @endif
                             </div>
                             @endforeach
-                        </div>
-                        
-                        <div class="mt-4 pt-4 border-t border-gray-200">
-                            <button class="w-full text-center text-sm font-medium text-indigo-600 hover:text-indigo-500">
-                                Invite Member
-                            </button>
                         </div>
                     </x-ui.card>
                 </div>
@@ -100,4 +128,13 @@
 
         </div>
     </div>
+
+    <script>
+    function copyInviteCode() {
+        const code = document.getElementById('invite-code').textContent.trim();
+        navigator.clipboard.writeText(code).then(() => {
+            alert('Invitation code copied to clipboard!');
+        });
+    }
+    </script>
 </x-app-layout>
