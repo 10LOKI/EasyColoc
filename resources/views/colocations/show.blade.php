@@ -5,9 +5,14 @@
                 <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                     {{ $colocation->name }}
                 </h2>
-                <p class="text-sm text-gray-600 mt-1">{{ $colocation->address }}</p>
+                <p class="text-sm text-gray-600 mt-1">Invite Code: {{ $colocation->invite_code }}</p>
             </div>
             <div class="flex gap-2">
+                @if($colocation->isOwner(auth()->user()))
+                <a href="{{ route('colocations.edit', $colocation) }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
+                    Edit
+                </a>
+                @endif
                 <a href="{{ route('expenses.create', ['colocation' => $colocation->id]) }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700">
                     Add Expense
                 </a>
@@ -18,7 +23,6 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
-            {{-- Stats --}}
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
                 <x-ui.stat-card 
                     title="Total Members" 
@@ -44,7 +48,6 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
-                {{-- Members --}}
                 <div class="lg:col-span-1">
                     <x-ui.card title="Members">
                         <div class="space-y-3">
@@ -56,11 +59,11 @@
                                     </div>
                                     <div class="ml-3">
                                         <p class="text-sm font-medium text-gray-900">{{ $membership->user->name }}</p>
-                                        <p class="text-xs text-gray-500">{{ $membership->role }}</p>
+                                        <p class="text-xs text-gray-500">{{ ucfirst($membership->role) }}</p>
                                     </div>
                                 </div>
-                                @if($membership->role === 'admin')
-                                <x-ui.badge variant="primary">Admin</x-ui.badge>
+                                @if($membership->role === 'owner')
+                                <x-ui.badge variant="primary">Owner</x-ui.badge>
                                 @endif
                             </div>
                             @endforeach
@@ -74,7 +77,6 @@
                     </x-ui.card>
                 </div>
 
-                {{-- Expenses --}}
                 <div class="lg:col-span-2">
                     <x-ui.card title="Recent Expenses">
                         @if($colocation->expenses->count() > 0)

@@ -28,10 +28,6 @@
                 <x-colocation.card :colocation="$colocation" />
                 @endforeach
             </div>
-
-            <div class="mt-6">
-                {{ $colocations->links() }}
-            </div>
             @else
             <x-ui.card>
                 <x-ui.empty-state 

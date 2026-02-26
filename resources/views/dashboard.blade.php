@@ -54,7 +54,7 @@
                 {{ session('success') }}
             </x-ui.alert>
             @endif
-
+<!-- nadee -->
             {{-- My Colocations --}}
             <x-ui.card title="My Colocations">
                 @if(isset($colocations) && $colocations->count() > 0)
