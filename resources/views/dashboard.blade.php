@@ -26,7 +26,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
             
             {{-- Stats Overview --}}
-            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
                 <x-ui.stat-card 
                     title="Total Colocations" 
                     value="{{ $stats['colocations'] ?? 0 }}"
@@ -54,6 +54,13 @@
                     value="{{ $stats['pending_settlements'] ?? 0 }}"
                     color="red"
                     :icon="'<svg class=\'h-6 w-6 text-white\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'currentColor\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z\'/></svg>'"
+                />
+
+                <x-ui.stat-card 
+                    title="Reputation" 
+                    value="{{ auth()->user()->reputation_score }}"
+                    color="{{ auth()->user()->reputation_score < 0 ? 'red' : 'green' }}"
+                    :icon="'<svg class=\'h-6 w-6 text-white\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'currentColor\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.076 3.317a1 1 0 00.95.69h3.49c.969 0 1.371 1.24.588 1.81l-2.824 2.052a1 1 0 00-.364 1.118l1.078 3.318c.3.922-.755 1.688-1.54 1.118l-2.825-2.052a1 1 0 00-1.175 0l-2.824 2.052c-.785.57-1.84-.196-1.54-1.118l1.077-3.318a1 1 0 00-.363-1.118L2.945 8.744c-.783-.57-.38-1.81.588-1.81h3.49a1 1 0 00.95-.69l1.076-3.317z\'/></svg>'"
                 />
             </div>
 
