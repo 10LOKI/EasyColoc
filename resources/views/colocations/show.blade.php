@@ -12,6 +12,9 @@
                 </div>
             </div>
             <div class="flex gap-2">
+                <a href="{{ route('colocations.balances', $colocation) }}" class="inline-flex items-center px-4 py-2 bg-emerald-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-emerald-700">
+                    Settlements
+                </a>
                 @if($colocation->status !== 'cancelled' && $colocation->isOwner(auth()->user()))
                 <a href="{{ route('colocations.edit', $colocation) }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
                     Edit

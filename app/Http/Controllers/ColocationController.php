@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Colocation;
 use App\Models\Expense;
 use App\Models\Invitation;
+use App\Models\Settlement;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
@@ -133,8 +134,16 @@ class ColocationController extends Controller
 
 public function calculateBalances(Colocation $colocation)
 {
+    abort_unless($colocation->isMember(auth()->user()), 403);
+
     $members = $colocation->users;
-    $expenses = $colocation->expenses;
+    $expenses = $colocation->expenses()->get();
+    $paidSettlements = $colocation->settlements()->where('status', 'paid')->get();
+    $pendingSettlements = $colocation->settlements()
+        ->with(['sender', 'receiver'])
+        ->where('status', 'pending')
+        ->latest()
+        ->get();
 
     $totalExpenses = $expenses->sum('amount');
     $memberCount = $members->count();
@@ -142,15 +151,149 @@ public function calculateBalances(Colocation $colocation)
 
     $balances = [];
     foreach ($members as $member) {
-        $paid = $expenses->where('paid_by', $member->id)->sum('amount');
+        $paidExpenses = $expenses->where('paid_by', $member->id)->sum('amount');
+        $sentSettlements = $paidSettlements->where('sender_id', $member->id)->sum('amount');
+        $receivedSettlements = $paidSettlements->where('receiver_id', $member->id)->sum('amount');
+        $paid = $paidExpenses - $sentSettlements + $receivedSettlements;
+
         $balances[$member->id] = [
+            'id' => $member->id,
             'name' => $member->name,
             'paid' => $paid,
             'owes' => $perPerson - $paid
         ];
     }
 
-    return view('colocations.balances', compact('colocation', 'balances', 'perPerson', 'totalExpenses'));
+    $suggestedSettlements = $this->buildSuggestedSettlements($balances);
+
+    return view('colocations.balances', compact(
+        'colocation',
+        'balances',
+        'perPerson',
+        'totalExpenses',
+        'suggestedSettlements',
+        'pendingSettlements'
+    ));
+}
+
+public function storeSettlement(Request $request, Colocation $colocation)
+{
+    abort_unless($colocation->isMember(auth()->user()), 403);
+
+    $data = $request->validate([
+        'receiver_id' => 'required|exists:users,id',
+        'amount' => 'required|numeric|min:0.01',
+    ]);
+
+    abort_if((int) $data['receiver_id'] === auth()->id(), 422, 'You cannot settle with yourself.');
+
+    $receiver = $colocation->users()->where('users.id', $data['receiver_id'])->firstOrFail();
+
+    $maxAmount = $this->maxSuggestedAmountForPair($colocation, auth()->id(), (int) $receiver->id);
+    abort_if($maxAmount <= 0, 422, 'No pending debt to this member.');
+    abort_if((float) $data['amount'] > $maxAmount, 422, 'Amount exceeds your pending debt to this member.');
+
+    Settlement::create([
+        'colocation_id' => $colocation->id,
+        'sender_id' => auth()->id(),
+        'receiver_id' => $receiver->id,
+        'amount' => $data['amount'],
+        'status' => 'pending',
+    ]);
+
+    return redirect()
+        ->route('colocations.balances', $colocation)
+        ->with('success', 'Settlement created. Mark it as paid once transferred.');
+}
+
+public function markSettlementPaid(Colocation $colocation, Settlement $settlement)
+{
+    abort_unless($colocation->isMember(auth()->user()), 403);
+    abort_unless($settlement->colocation_id === $colocation->id, 404);
+    abort_unless($settlement->sender_id === auth()->id(), 403);
+
+    $settlement->markAsPaid();
+
+    return redirect()
+        ->route('colocations.balances', $colocation)
+        ->with('success', 'Settlement marked as paid.');
+}
+
+private function buildSuggestedSettlements(array $balances): array
+{
+    $debtors = collect($balances)
+        ->filter(fn ($balance) => $balance['owes'] > 0)
+        ->map(fn ($balance) => ['id' => $balance['id'], 'name' => $balance['name'], 'amount' => (float) $balance['owes']])
+        ->values()
+        ->all();
+
+    $creditors = collect($balances)
+        ->filter(fn ($balance) => $balance['owes'] < 0)
+        ->map(fn ($balance) => ['id' => $balance['id'], 'name' => $balance['name'], 'amount' => (float) abs($balance['owes'])])
+        ->values()
+        ->all();
+
+    $suggestions = [];
+    $i = 0;
+    $j = 0;
+
+    while ($i < count($debtors) && $j < count($creditors)) {
+        $transfer = min($debtors[$i]['amount'], $creditors[$j]['amount']);
+
+        $suggestions[] = [
+            'from_id' => $debtors[$i]['id'],
+            'from_name' => $debtors[$i]['name'],
+            'to_id' => $creditors[$j]['id'],
+            'to_name' => $creditors[$j]['name'],
+            'amount' => round($transfer, 2),
+        ];
+
+        $debtors[$i]['amount'] = round($debtors[$i]['amount'] - $transfer, 2);
+        $creditors[$j]['amount'] = round($creditors[$j]['amount'] - $transfer, 2);
+
+        if ($debtors[$i]['amount'] <= 0) {
+            $i++;
+        }
+        if ($creditors[$j]['amount'] <= 0) {
+            $j++;
+        }
+    }
+
+    return $suggestions;
+}
+
+private function maxSuggestedAmountForPair(Colocation $colocation, int $senderId, int $receiverId): float
+{
+    $members = $colocation->users;
+    $expenses = $colocation->expenses()->get();
+    $paidSettlements = $colocation->settlements()->where('status', 'paid')->get();
+
+    $totalExpenses = $expenses->sum('amount');
+    $memberCount = $members->count();
+    if ($memberCount === 0) {
+        return 0;
+    }
+
+    $perPerson = $totalExpenses / $memberCount;
+    $balances = [];
+    foreach ($members as $member) {
+        $paidExpenses = $expenses->where('paid_by', $member->id)->sum('amount');
+        $sentSettlements = $paidSettlements->where('sender_id', $member->id)->sum('amount');
+        $receivedSettlements = $paidSettlements->where('receiver_id', $member->id)->sum('amount');
+        $paid = $paidExpenses - $sentSettlements + $receivedSettlements;
+
+        $balances[$member->id] = [
+            'id' => $member->id,
+            'name' => $member->name,
+            'paid' => $paid,
+            'owes' => $perPerson - $paid,
+        ];
+    }
+
+    $suggested = collect($this->buildSuggestedSettlements($balances))
+        ->first(fn ($row) => $row['from_id'] === $senderId && $row['to_id'] === $receiverId);
+
+    return (float) ($suggested['amount'] ?? 0);
 }
 
 public function destroy(Colocation $colocation)

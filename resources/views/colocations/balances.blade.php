@@ -16,6 +16,17 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+            @if(session('success'))
+            <x-ui.alert type="success" dismissible>
+                {{ session('success') }}
+            </x-ui.alert>
+            @endif
+
+            @if($errors->any())
+            <x-ui.alert type="danger">
+                {{ $errors->first() }}
+            </x-ui.alert>
+            @endif
 
             {{-- Summary Stats --}}
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -60,6 +71,73 @@
                     </div>
                     @endforeach
                 </div>
+            </x-ui.card>
+
+            <x-ui.card title="Suggested Settlements">
+                @if(count($suggestedSettlements) > 0)
+                <div class="space-y-3">
+                    @foreach($suggestedSettlements as $settlement)
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div>
+                            <p class="text-sm text-gray-700">
+                                <span class="font-semibold">{{ $settlement['from_name'] }}</span>
+                                should pay
+                                <span class="font-semibold">{{ $settlement['to_name'] }}</span>
+                            </p>
+                            <p class="text-xs text-gray-500 mt-1">
+                                Suggested amount: ${{ number_format($settlement['amount'], 2) }}
+                            </p>
+                        </div>
+                        @if(auth()->id() === $settlement['from_id'])
+                        <form method="POST" action="{{ route('colocations.settlements.store', $colocation) }}">
+                            @csrf
+                            <input type="hidden" name="receiver_id" value="{{ $settlement['to_id'] }}">
+                            <input type="hidden" name="amount" value="{{ number_format($settlement['amount'], 2, '.', '') }}">
+                            <x-primary-button type="submit">
+                                Create Payment
+                            </x-primary-button>
+                        </form>
+                        @endif
+                    </div>
+                    @endforeach
+                </div>
+                @else
+                <p class="text-sm text-gray-500">No settlement needed. Everyone is balanced.</p>
+                @endif
+            </x-ui.card>
+
+            <x-ui.card title="Pending Settlements">
+                @if($pendingSettlements->count() > 0)
+                <div class="space-y-3">
+                    @foreach($pendingSettlements as $pending)
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div>
+                            <p class="text-sm text-gray-700">
+                                <span class="font-semibold">{{ $pending->sender?->name }}</span>
+                                pays
+                                <span class="font-semibold">{{ $pending->receiver?->name }}</span>
+                            </p>
+                            <p class="text-xs text-gray-500 mt-1">
+                                ${{ number_format($pending->amount, 2) }} • {{ $pending->created_at?->format('M d, Y H:i') }}
+                            </p>
+                        </div>
+                        @if(auth()->id() === $pending->sender_id)
+                        <form method="POST" action="{{ route('colocations.settlements.pay', [$colocation, $pending]) }}">
+                            @csrf
+                            @method('PATCH')
+                            <x-primary-button type="submit">
+                                Mark As Paid
+                            </x-primary-button>
+                        </form>
+                        @else
+                        <x-ui.badge variant="warning">Pending</x-ui.badge>
+                        @endif
+                    </div>
+                    @endforeach
+                </div>
+                @else
+                <p class="text-sm text-gray-500">No pending settlements.</p>
+                @endif
             </x-ui.card>
 
         </div>

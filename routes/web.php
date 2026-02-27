@@ -25,6 +25,8 @@ Route::middleware(['auth', 'verified', 'check.banned'])->group(function () {
     // Expense routes within colocations
     Route::post('/colocation/{colocation}/expenses',[ColocationController::class,'addExpense'])->name('colocations.expenses');
     Route::get('/colocation/{colocation}/balances',[ColocationController::class,'calculateBalances'])->name('colocations.balances');
+    Route::post('/colocation/{colocation}/settlements',[ColocationController::class,'storeSettlement'])->name('colocations.settlements.store');
+    Route::patch('/colocation/{colocation}/settlements/{settlement}/pay',[ColocationController::class,'markSettlementPaid'])->name('colocations.settlements.pay');
     
     Route::get('/join', [InvitationController::class, 'show'])->name('invitations.show');
     Route::post('/join', [InvitationController::class, 'join'])->name('invitations.join');

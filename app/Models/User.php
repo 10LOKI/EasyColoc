@@ -45,11 +45,21 @@ class User extends Authenticatable
 
     public function expenses()
     {
-        return $this->hasMany(Expense::class, 'payer_id');
+        return $this->hasMany(Expense::class, 'paid_by');
     }
 
     public function reputations()
     {
         return $this->hasMany(Reputation::class);
+    }
+
+    public function sentSettlements()
+    {
+        return $this->hasMany(Settlement::class, 'sender_id');
+    }
+
+    public function receivedSettlements()
+    {
+        return $this->hasMany(Settlement::class, 'receiver_id');
     }
 }
