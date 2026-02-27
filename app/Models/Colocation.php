@@ -26,6 +26,11 @@ class Colocation extends Model
         return $this->hasMany(Expense::class);
    }
 
+   public function reputations()
+   {
+       return $this->hasMany(Reputation::class);
+   }
+
    public function isMember($user)
    {
        return $this->users()->where('user_id', $user->id)->exists();
