@@ -13,7 +13,7 @@ class User extends Authenticatable
     const ROLE_ADMIN = 'admin';
     const ROLE_USER = 'user';
 
-    protected $fillable = ['name', 'email', 'password'];
+    protected $fillable = ['name', 'email', 'password', 'role', 'is_banned', 'reputation_score'];
     
     protected $hidden = ['password', 'remember_token'];
 
@@ -22,7 +22,13 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_banned' => 'boolean',
         ];
+    }
+
+    public function isAdmin()
+    {
+        return $this->role === self::ROLE_ADMIN;
     }
 
     public function memberships()
