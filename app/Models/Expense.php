@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Expense extends Model
 {
     protected $table = 'expenses';
-    protected $fillable = ['colocation_id', 'paid_by', 'description', 'amount'];
+    protected $fillable = ['colocation_id', 'paid_by', 'category_id', 'description', 'amount'];
 
     protected $casts = [
         'amount' => 'decimal:2',

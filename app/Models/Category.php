@@ -3,13 +3,20 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Category extends Model
 {
-    protected $fillable = ['name', 'icon', 'color'];
+    protected $fillable = ['name', 'colocation_id'];
 
-    public function expenses()
+    public function expenses(): HasMany
     {
         return $this->hasMany(Expense::class);
+    }
+
+    public function colocation(): BelongsTo
+    {
+        return $this->belongsTo(Colocation::class);
     }
 }
