@@ -6,6 +6,11 @@
             <div class="flex-1">
                 <h3 class="text-lg font-semibold text-gray-900">{{ $colocation->name }}</h3>
                 <p class="mt-1 text-sm text-gray-500">Code: {{ $colocation->invite_code }}</p>
+                <div class="mt-2">
+                    <x-ui.badge :variant="$colocation->status === 'cancelled' ? 'danger' : 'success'">
+                        {{ ucfirst($colocation->status ?? 'active') }}
+                    </x-ui.badge>
+                </div>
             </div>
             <x-ui.badge variant="info">
                 {{ $colocation->memberships_count ?? $colocation->memberships->count() }} members

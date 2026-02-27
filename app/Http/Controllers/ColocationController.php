@@ -7,6 +7,7 @@ use App\Models\Expense;
 use App\Models\Invitation;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class ColocationController extends Controller
@@ -39,11 +40,33 @@ class ColocationController extends Controller
     }
     public function show(Colocation $colocation)
     {
-        $colocations =   $colocation->load('users','expenses.paidBy');
+        $colocation->load(['users', 'memberships.user', 'expenses.payer']);
 
-        $colocation->load(['memberships.user', 'expenses.payer']);
+        return view('colocations.show', compact('colocation'));
+    }
 
-        return view('colocations.show', compact('colocations'));
+    public function edit(Colocation $colocation)
+    {
+        abort_unless($colocation->isOwner(auth()->user()), 403);
+
+        return view('colocations.edit', compact('colocation'));
+    }
+
+    public function update(Request $request, Colocation $colocation)
+    {
+        abort_unless($colocation->isOwner(auth()->user()), 403);
+
+        $data = $request->validate([
+            'name' => 'required|string|max:30',
+        ]);
+
+        $colocation->update([
+            'name' => $data['name'],
+        ]);
+
+        return redirect()
+            ->route('colocations.show', $colocation)
+            ->with('success', 'Colocation updated successfully.');
     }
 
     public function invit(Request $request, $colocation)
@@ -128,6 +151,22 @@ public function calculateBalances(Colocation $colocation)
     }
 
     return view('colocations.balances', compact('colocation', 'balances', 'perPerson', 'totalExpenses'));
+}
+
+public function destroy(Colocation $colocation)
+{
+    abort_unless($colocation->isOwner(auth()->user()), 403);
+
+    DB::transaction(function () use ($colocation) {
+        $colocation->update(['status' => 'cancelled']);
+        $colocation->memberships()
+            ->whereNull('left_at')
+            ->update(['left_at' => now()]);
+    });
+
+    return redirect()
+        ->route('colocations.index')
+        ->with('success', 'Colocation cancelled successfully.');
 }
 
 }

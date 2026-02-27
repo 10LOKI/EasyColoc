@@ -30,4 +30,13 @@ class Colocation extends Model
    {
        return $this->users()->where('user_id', $user->id)->exists();
    }
+
+   public function isOwner(User $user): bool
+   {
+       return $this->memberships()
+           ->where('user_id', $user->id)
+           ->where('role', 'owner')
+           ->whereNull('left_at')
+           ->exists();
+   }
 }

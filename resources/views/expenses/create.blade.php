@@ -46,7 +46,7 @@
                         <x-input-error class="mt-2" :messages="$errors->get('description')" />
                     </div>
 
-                    {{-- Amount & Category --}}
+                    {{-- Amount --}}
                     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                         <div>
                             <x-input-label for="amount" value="Amount" />
@@ -62,38 +62,6 @@
                             />
                             <x-input-error class="mt-2" :messages="$errors->get('amount')" />
                         </div>
-
-                        <div>
-                            <x-input-label for="category_id" value="Category" />
-                            <select 
-                                id="category_id" 
-                                name="category_id" 
-                                class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                                required
-                            >
-                                <option value="">Select category</option>
-                                @foreach($categories ?? [] as $category)
-                                <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
-                                    {{ $category->name }}
-                                </option>
-                                @endforeach
-                            </select>
-                            <x-input-error class="mt-2" :messages="$errors->get('category_id')" />
-                        </div>
-                    </div>
-
-                    {{-- Date --}}
-                    <div>
-                        <x-input-label for="date" value="Date" />
-                        <x-text-input 
-                            id="date" 
-                            name="date" 
-                            type="date" 
-                            class="mt-1 block w-full" 
-                            :value="old('date', date('Y-m-d'))" 
-                            required 
-                        />
-                        <x-input-error class="mt-2" :messages="$errors->get('date')" />
                     </div>
 
                     {{-- Actions --}}

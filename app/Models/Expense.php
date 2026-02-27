@@ -8,7 +8,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Expense extends Model
 {
     protected $table = 'expenses';
-    protected $fillable = ['colocation_id','paid_by','description','amount'];
+    protected $fillable = ['colocation_id', 'paid_by', 'description', 'amount'];
+
+    protected $casts = [
+        'amount' => 'decimal:2',
+    ];
 
     public function colocation() : BelongsTo
     {
@@ -17,13 +21,13 @@ class Expense extends Model
 
     public function payer()
     {
-        return $this->belongsTo(User::class, 'payer_id')->withDefault([
+        return $this->belongsTo(User::class, 'paid_by')->withDefault([
             'name' => 'Unknown user',
         ]);
     }
 
     public function category()
     {
-        return $this->belongsTo(User::class,'paid_by');
+        return $this->belongsTo(Category::class);
     }
 }
