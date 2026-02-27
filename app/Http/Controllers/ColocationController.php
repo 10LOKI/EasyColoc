@@ -42,7 +42,13 @@ class ColocationController extends Controller
     }
     public function show(Colocation $colocation)
     {
-        $colocation->load(['users', 'memberships.user', 'expenses.payer']);
+        $colocation->load([
+            'users',
+            'memberships' => function ($query) {
+                $query->whereNull('left_at')->with('user');
+            },
+            'expenses.payer'
+        ]);
 
         return view('colocations.show', compact('colocation'));
     }
@@ -182,7 +188,9 @@ public function leave(Colocation $colocation)
     $user = auth()->user();
 
     abort_unless($colocation->isMember($user), 403);
-    abort_if($colocation->isOwner($user), 422, 'Owner cannot leave the colocation. Transfer ownership first or cancel it.');
+    if ($colocation->isOwner($user)) {
+        return back()->with('error', 'Owner cannot leave the colocation. Transfer ownership first or cancel it.');
+    }
 
     $userOwes = $this->calculateUserOwesAmount($colocation, $user->id);
 
