@@ -8,7 +8,7 @@
                 <x-ui.badge variant="default">{{ $expense->category->name ?? 'Uncategorized' }}</x-ui.badge>
             </div>
             <p class="mt-1 text-xs text-gray-500">
-                Paid by {{ $expense->payer->name }} • {{ $expense->date->format('M d, Y') }}
+                Paid by {{ $expense->payer?->name ?? 'Unknown user' }} • {{ $expense->date?->format('M d, Y') ?? 'No date' }}
             </p>
         </div>
         <div class="text-right">

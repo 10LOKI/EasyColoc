@@ -41,7 +41,7 @@ class ColocationController extends Controller
     {
         $colocations =   $colocation->load('users','expenses.paidBy');
 
-        //   dd($colocations);
+        $colocation->load(['memberships.user', 'expenses.payer']);
 
         return view('colocations.show', compact('colocations'));
     }

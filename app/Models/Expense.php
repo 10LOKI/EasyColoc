@@ -14,7 +14,15 @@ class Expense extends Model
     {
         return $this->belongsTo(Colocation::class);
     }
-    public function paidBy() : BelongsTo
+
+    public function payer()
+    {
+        return $this->belongsTo(User::class, 'payer_id')->withDefault([
+            'name' => 'Unknown user',
+        ]);
+    }
+
+    public function category()
     {
         return $this->belongsTo(User::class,'paid_by');
     }
