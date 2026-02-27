@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="MpTSM8tRc4NfgaP-Ep8g" name="Page-1">
-        <mxGraphModel dx="522" dy="1527" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="474" dy="1407" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -56,16 +56,16 @@
                     <mxGeometry y="138" width="230" height="82" as="geometry"/>
                 </mxCell>
                 <mxCell id="19" value="Category" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="1000" y="-200" width="220" height="110" as="geometry"/>
+                    <mxGeometry x="1000" y="-200" width="220" height="130" as="geometry"/>
                 </mxCell>
-                <mxCell id="20" value="- id : int&amp;nbsp;&lt;br&gt;- name : string&amp;nbsp;" style="text;strokeColor=none;fillColor=none;align=center;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="19" vertex="1">
-                    <mxGeometry y="26" width="220" height="44" as="geometry"/>
+                <mxCell id="20" value="- id : int&amp;nbsp;&lt;br&gt;- name : string&lt;br&gt;- colocation_id : int&amp;nbsp;&amp;nbsp;" style="text;strokeColor=none;fillColor=none;align=center;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="19" vertex="1">
+                    <mxGeometry y="26" width="220" height="64" as="geometry"/>
                 </mxCell>
                 <mxCell id="21" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" parent="19" vertex="1">
-                    <mxGeometry y="70" width="220" height="8" as="geometry"/>
+                    <mxGeometry y="90" width="220" height="8" as="geometry"/>
                 </mxCell>
                 <mxCell id="22" value="+ expenses() : Collection&amp;lt;Expense&amp;gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="19" vertex="1">
-                    <mxGeometry y="78" width="220" height="32" as="geometry"/>
+                    <mxGeometry y="98" width="220" height="32" as="geometry"/>
                 </mxCell>
                 <mxCell id="23" value="Invitation" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="330" y="-240" width="160" height="220" as="geometry"/>
@@ -262,6 +262,18 @@
                         <mxPoint x="365" y="-317" as="sourcePoint"/>
                         <mxPoint x="455" y="-334" as="targetPoint"/>
                     </mxGeometry>
+                </mxCell>
+                <mxCell id="89" value="Reputation" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="1275" y="-418" width="280" height="230" as="geometry"/>
+                </mxCell>
+                <mxCell id="90" value="-id : int&lt;br&gt;- user_id : foreignId&lt;br&gt;- colocation_id : foreignId(nullable)&lt;br&gt;- score : int&amp;nbsp;&lt;br&gt;-reason : string&amp;nbsp;&lt;br&gt;-description : text(nuulable)&lt;br&gt;- created_at : timestamp&lt;br&gt;- updated_at : timestamp" style="text;strokeColor=none;fillColor=none;align=center;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="89">
+                    <mxGeometry y="26" width="280" height="144" as="geometry"/>
+                </mxCell>
+                <mxCell id="91" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="89">
+                    <mxGeometry y="170" width="280" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="92" value="+ addPositive($user,$colocation,$reason)&lt;br&gt;&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;+ addNegative($user,$colocation,$reason)&lt;br&gt;+getTotalScore($user)&lt;/span&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" vertex="1" parent="89">
+                    <mxGeometry y="178" width="280" height="52" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
