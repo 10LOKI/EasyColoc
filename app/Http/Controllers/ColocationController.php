@@ -3,22 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Colocation;
+use App\Models\Expense;
+use App\Models\Invitation;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class ColocationController extends Controller
 {
     public function index()
     {
-        $colocations = auth()->user()
-            ->memberships()
-            ->with(['colocation.memberships.user'])
-            ->active()
-            ->get()
-            ->pluck('colocation')
-            ->filter()
-            ->values();
-
+        $colocations = auth()->user()->colocations;
         return view('colocations.index', compact('colocations'));
     }
 
@@ -29,90 +24,110 @@ class ColocationController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
+        $data = $request->validate([
+            "name" => "required|string|max:30",
         ]);
 
-        try {
-            $colocation = DB::transaction(function () use ($request) {
-                $colocation = Colocation::create([
-                    'name' => $request->name,
-                ]);
-                
-                $colocation->memberships()->create([
-                    'user_id' => auth()->id(),
-                    'role' => 'owner',
-                    'joined_at' => now(),
-                ]);
-                
-                return $colocation;
-            });
+        $colocation = Colocation::create([
+            "name" => $data['name'],
+            "invite_code" => \Illuminate\Support\Str::random(10),
+        ]);
 
-            return redirect()
-                ->route('colocations.show', $colocation)
-                ->with('success', 'Colocation created successfully!');
-                
-        } catch (\Exception $e) {
-            return back()
-                ->withInput()
-                ->with('error', 'Failed to create colocation: ' . $e->getMessage());
-        }
+        $colocation->users()->attach(auth()->id(), ['role' => 'owner', 'left_at' => null]);
+
+        return redirect()->route('colocations.show', $colocation);
     }
-
     public function show(Colocation $colocation)
     {
-        abort_unless($colocation->isMember(auth()->user()), 403);
+        $colocations =   $colocation->load('users','expenses.paidBy');
 
-        $colocation->load(['memberships.user', 'expenses']);
+        //   dd($colocations);
 
-        return view('colocations.show', compact('colocation'));
+        return view('colocations.show', compact('colocations'));
     }
 
-    public function edit(Colocation $colocation)
+    public function invit(Request $request, $colocation)
     {
-        abort_unless($colocation->isOwner(auth()->user()), 403);
 
-        return view('colocations.edit', compact('colocation'));
-    }
 
-    public function update(Request $request, Colocation $colocation)
-    {
-        abort_unless($colocation->isOwner(auth()->user()), 403);
 
-        $request->validate([
-            'name' => 'required|string|max:255',
+        $invitation = Invitation::create([
+            'colocation_id' => $colocation,
+            'created_by' => auth()->id(),
+            'token' => Str::random(20),
+            'email' => $request->email,
+            'status' => "pendding"
         ]);
 
-        try {
-            $colocation->update(['name' => $request->name]);
+           $url = url('/invitations/' . $invitation->token);
 
-            return redirect()
-                ->route('colocations.show', $colocation)
-                ->with('success', 'Colocation updated successfully!');
-                
-        } catch (\Exception $e) {
-            return back()
-                ->withInput()
-                ->with('error', 'Failed to update colocation.');
-        }
+            return redirect()->back()->with('link', $url);
+
     }
 
-    public function destroy(Colocation $colocation)
-    {
-        abort_unless($colocation->isOwner(auth()->user()), 403);
+    public function sendinvitation($token){
+        $invitation= Invitation::where('token',$token)->firstOrfail();
+        
+        $colocation = Colocation::findOrfail($invitation->colocation_id);
 
-        try {
-            DB::transaction(function () use ($colocation) {
-                $colocation->update(['status' => 'cancelled']);
-                $colocation->memberships()->whereNull('left_at')->update(['left_at' => now()]);
-            });
+        return view('colocations.invitation',compact('invitation','colocation'));
+    }   
+    public function acceptinvitation(Request $request , $token){
+        
+       
 
-            return redirect()
-                ->route('colocations.index')
-                ->with('success', 'Colocation cancelled successfully!');
-                
-        } catch (\Exception $e) {
-            return back()->with('error', 'Failed to cancel colocation.');
-        }
+        $invitation= Invitation::where('token',$token)->firstOrfail();
+
+         if(auth()->user()->email != $invitation->email )
+            abort(403);
+        $invitation->update([
+            "status"=> "accepted",
+            "accepted_by"=>auth()->id()
+        ]);
+        
+        $colocation = Colocation::findOrfail($invitation->colocation_id);
+        $colocation->users()->attach(auth()->id(), ['role' => 'member', 'left_at' => null]);  
+        
+         return redirect()->route('colocations.show', $colocation);
+
+
     }
+    public function addExpense(Request $request, Colocation $colocation)
+{
+    $data = $request->validate([
+        'description' => 'required|string|max:255',
+        'amount' => 'required|numeric|min:0.01'
+    ]);
+
+    $colocation->expenses()->create([
+        'paid_by' => auth()->id(),
+        'description' => $data['description'],
+        'amount' => $data['amount']
+    ]);
+
+    return redirect()->route('colocations.show', $colocation);
+}
+
+public function calculateBalances(Colocation $colocation)
+{
+    $members = $colocation->users;
+    $expenses = $colocation->expenses;
+
+    $totalExpenses = $expenses->sum('amount');
+    $memberCount = $members->count();
+    $perPerson = $memberCount > 0 ? $totalExpenses / $memberCount : 0;
+
+    $balances = [];
+    foreach ($members as $member) {
+        $paid = $expenses->where('paid_by', $member->id)->sum('amount');
+        $balances[$member->id] = [
+            'name' => $member->name,
+            'paid' => $paid,
+            'owes' => $perPerson - $paid
+        ];
+    }
+
+    return view('colocations.balances', compact('colocation', 'balances', 'perPerson', 'totalExpenses'));
+}
+
 }

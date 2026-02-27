@@ -21,6 +21,9 @@
                     <x-nav-link :href="route('expenses.index')" :active="request()->routeIs('expenses.*')">
                         {{ __('Expenses') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('invitations.show')" :active="request()->routeIs('invitations.*')">
+                        {{ __('Join') }}
+                    </x-nav-link>
                 </div>
             </div>
 
