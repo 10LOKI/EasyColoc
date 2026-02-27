@@ -12,7 +12,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'check.banned'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
     Route::resource('colocations', ColocationController::class);
@@ -30,7 +30,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'check.banned', 'admin'])->prefix('admin')->group(function () {
     Route::get('/statistics', [AdminController::class, 'statistics'])->name('admin.statistics');
     Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
     Route::post('/users/{user}/ban', [AdminController::class, 'banUser'])->name('admin.users.ban');
