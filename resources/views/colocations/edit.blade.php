@@ -9,7 +9,7 @@
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
             
             <x-ui.card>
-                <form method="POST" action="{{ route('colocations.update', $colocation) }}" class="space-y-6">
+                <form id="update-colocation-form" method="POST" action="{{ route('colocations.update', $colocation) }}" class="space-y-6">
                     @csrf
                     @method('PUT')
 
@@ -26,18 +26,7 @@
                         <x-input-error class="mt-2" :messages="$errors->get('name')" />
                     </div>
 
-                    <div class="flex items-center justify-between">
-                        <form method="POST" action="{{ route('colocations.destroy', $colocation) }}">
-                            @csrf
-                            @method('DELETE')
-                            <x-danger-button 
-                                type="submit"
-                                onclick="return confirm('Are you sure you want to cancel this colocation?')"
-                            >
-                                Cancel Colocation
-                            </x-danger-button>
-                        </form>
-
+                    <div class="flex items-center justify-end">
                         <div class="flex gap-4">
                             <a href="{{ route('colocations.show', $colocation) }}" class="text-sm text-gray-600 hover:text-gray-900">
                                 Cancel
@@ -48,6 +37,19 @@
                         </div>
                     </div>
                 </form>
+
+                <div class="mt-6 border-t border-gray-200 pt-6">
+                    <form method="POST" action="{{ route('colocations.destroy', $colocation) }}">
+                        @csrf
+                        @method('DELETE')
+                        <x-danger-button
+                            type="submit"
+                            onclick="return confirm('Are you sure you want to cancel this colocation?')"
+                        >
+                            Cancel Colocation
+                        </x-danger-button>
+                    </form>
+                </div>
             </x-ui.card>
 
         </div>
