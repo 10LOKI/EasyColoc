@@ -17,6 +17,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('colocations', ColocationController::class);
     Route::resource('expenses', ExpenseController::class);
     
+    // Expense routes within colocations
+    Route::post('/colocation/{colocation}/expenses',[ColocationController::class,'addExpense'])->name('colocations.expenses');
+    Route::get('/colocation/{colocation}/balances',[ColocationController::class,'calculateBalances'])->name('colocations.balances');
+    
     Route::get('/join', [InvitationController::class, 'show'])->name('invitations.show');
     Route::post('/join', [InvitationController::class, 'join'])->name('invitations.join');
     

@@ -3,35 +3,19 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Expense extends Model
 {
-    protected $fillable = [
-        'colocation_id',
-        'payer_id',
-        'category_id',
-        'amount',
-        'description',
-        'date',
-    ];
+    protected $table = 'expenses';
+    protected $fillable = ['colocation_id','paid_by','description','amount'];
 
-    protected $casts = [
-        'date' => 'date',
-        'amount' => 'decimal:2',
-    ];
-
-    public function colocation()
+    public function colocation() : BelongsTo
     {
         return $this->belongsTo(Colocation::class);
     }
-
-    public function payer()
+    public function paidBy() : BelongsTo
     {
-        return $this->belongsTo(User::class, 'payer_id');
-    }
-
-    public function category()
-    {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(User::class,'paid_by');
     }
 }

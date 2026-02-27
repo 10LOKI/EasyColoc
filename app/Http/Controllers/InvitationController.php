@@ -8,18 +8,19 @@ use Illuminate\Support\Facades\DB;
 
 class InvitationController extends Controller
 {
-    public function show()
+    public function show(Request $request)
     {
-        return view('invitations.join');
+        $code = $request->query('code');
+        return view('invitations.join', compact('code'));
     }
 
     public function join(Request $request)
     {
         $request->validate([
-            'invite_code' => 'required|string|size:8',
+            'invite_code' => 'required|string|min:8|max:10',
         ]);
 
-        $colocation = Colocation::where('invite_code', strtoupper($request->invite_code))
+        $colocation = Colocation::where('invite_code', $request->invite_code)
             ->where('status', 'active')
             ->first();
 
