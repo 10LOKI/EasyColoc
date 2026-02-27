@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Colocation;
 use App\Models\Expense;
 use App\Models\Invitation;
+use App\Models\Reputation;
 use App\Models\Settlement;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -176,6 +177,45 @@ public function calculateBalances(Colocation $colocation)
     ));
 }
 
+public function leave(Colocation $colocation)
+{
+    $user = auth()->user();
+
+    abort_unless($colocation->isMember($user), 403);
+    abort_if($colocation->isOwner($user), 422, 'Owner cannot leave the colocation. Transfer ownership first or cancel it.');
+
+    $userOwes = $this->calculateUserOwesAmount($colocation, $user->id);
+
+    DB::transaction(function () use ($colocation, $user, $userOwes) {
+        $colocation->memberships()
+            ->where('user_id', $user->id)
+            ->whereNull('left_at')
+            ->update(['left_at' => now()]);
+
+        if ($userOwes > 0) {
+            Reputation::addNegative(
+                $user,
+                $colocation,
+                'Left colocation with unpaid debt',
+                'Outstanding amount at leaving time: $' . number_format($userOwes, 2)
+            );
+        } else {
+            Reputation::addPositive(
+                $user,
+                $colocation,
+                'Left colocation with no debt',
+                'No outstanding debt at leaving time.'
+            );
+        }
+    });
+
+    return redirect()
+        ->route('colocations.index')
+        ->with('success', $userOwes > 0
+            ? 'You left the colocation. Negative reputation added because you still had debt.'
+            : 'You left the colocation. Positive reputation added because you had no debt.');
+}
+
 public function storeSettlement(Request $request, Colocation $colocation)
 {
     abort_unless($colocation->isMember(auth()->user()), 403);
@@ -294,6 +334,33 @@ private function maxSuggestedAmountForPair(Colocation $colocation, int $senderId
         ->first(fn ($row) => $row['from_id'] === $senderId && $row['to_id'] === $receiverId);
 
     return (float) ($suggested['amount'] ?? 0);
+}
+
+private function calculateUserOwesAmount(Colocation $colocation, int $userId): float
+{
+    $members = $colocation->users;
+    $expenses = $colocation->expenses()->get();
+    $paidSettlements = $colocation->settlements()->where('status', 'paid')->get();
+
+    $totalExpenses = $expenses->sum('amount');
+    $memberCount = $members->count();
+    if ($memberCount === 0) {
+        return 0.0;
+    }
+
+    $perPerson = $totalExpenses / $memberCount;
+
+    $member = $members->firstWhere('id', $userId);
+    if (!$member) {
+        return 0.0;
+    }
+
+    $paidExpenses = $expenses->where('paid_by', $member->id)->sum('amount');
+    $sentSettlements = $paidSettlements->where('sender_id', $member->id)->sum('amount');
+    $receivedSettlements = $paidSettlements->where('receiver_id', $member->id)->sum('amount');
+    $paid = $paidExpenses - $sentSettlements + $receivedSettlements;
+
+    return round(max(0, $perPerson - $paid), 2);
 }
 
 public function destroy(Colocation $colocation)

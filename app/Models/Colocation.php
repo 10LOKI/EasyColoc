@@ -18,6 +18,7 @@ class Colocation extends Model
    public function users() :BelongsToMany{
        return $this->belongsToMany(User::class, 'memberships')
         ->withPivot('role','left_at')
+        ->wherePivotNull('left_at')
         ->withTimestamps()
         ; 
    }
@@ -38,7 +39,10 @@ class Colocation extends Model
 
    public function isMember($user)
    {
-       return $this->users()->where('user_id', $user->id)->exists();
+       return $this->memberships()
+           ->where('user_id', $user->id)
+           ->whereNull('left_at')
+           ->exists();
    }
 
    public function isOwner(User $user): bool

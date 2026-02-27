@@ -40,6 +40,7 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Colocation::class, 'memberships')
             ->withPivot('role', 'joined_at', 'left_at')
+            ->wherePivotNull('left_at')
             ->withTimestamps();
     }
 
