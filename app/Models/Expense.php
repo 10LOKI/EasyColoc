@@ -27,7 +27,9 @@ class Expense extends Model
 
     public function payer()
     {
-        return $this->belongsTo(User::class, 'payer_id');
+        return $this->belongsTo(User::class, 'payer_id')->withDefault([
+            'name' => 'Unknown user',
+        ]);
     }
 
     public function category()

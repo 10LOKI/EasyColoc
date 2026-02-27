@@ -63,7 +63,7 @@ class ColocationController extends Controller
     {
         abort_unless($colocation->isMember(auth()->user()), 403);
 
-        $colocation->load(['memberships.user', 'expenses']);
+        $colocation->load(['memberships.user', 'expenses.payer']);
 
         return view('colocations.show', compact('colocation'));
     }
