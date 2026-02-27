@@ -28,7 +28,7 @@
                     Add Expense
                 </a>
                 @endif
-                @if($colocation->status !== 'cancelled' && $colocation->isMember(auth()->user()) && !$colocation->isOwner(auth()->user()))
+                @if($colocation->status !== 'cancelled' && $colocation->isMember(auth()->user()))
                 <form action="{{ route('colocations.leave', $colocation) }}" method="POST">
                     @csrf
                     <button type="submit" onclick="return confirm('Do you want to leave this colocation?')" class="inline-flex items-center px-4 py-2 bg-amber-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-amber-700">
@@ -42,6 +42,18 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+            @if(session('success'))
+            <x-ui.alert type="success" dismissible>
+                {{ session('success') }}
+            </x-ui.alert>
+            @endif
+
+            @if(session('error'))
+            <x-ui.alert type="danger" dismissible>
+                {{ session('error') }}
+            </x-ui.alert>
+            @endif
+
             @if($colocation->status === 'cancelled')
             <x-ui.alert type="warning">
                 This colocation is cancelled.

@@ -7,6 +7,13 @@
 
     <div class="py-12">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+            @php
+                $categoriesJson = json_encode(collect($categoriesByColocation ?? [])->map(function ($items) {
+                    return collect($items)->map(function ($cat) {
+                        return ['id' => $cat['id'] ?? $cat->id, 'name' => $cat['name'] ?? $cat->name];
+                    })->values();
+                })->toArray());
+            @endphp
             
             <x-ui.card>
                 <form method="POST" action="{{ route('expenses.store') }}" class="space-y-6">
@@ -62,6 +69,23 @@
                             />
                             <x-input-error class="mt-2" :messages="$errors->get('amount')" />
                         </div>
+                        <div>
+                            <x-input-label for="category_id" value="Category" />
+                            <select
+                                id="category_id"
+                                name="category_id"
+                                class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                required
+                            >
+                                <option value="">Select a category</option>
+                                @foreach($categories as $category)
+                                <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                    {{ $category->name }}
+                                </option>
+                                @endforeach
+                            </select>
+                            <x-input-error class="mt-2" :messages="$errors->get('category_id')" />
+                        </div>
                     </div>
 
                     {{-- Actions --}}
@@ -74,8 +98,60 @@
                         </x-primary-button>
                     </div>
                 </form>
+
+                <div class="mt-8 pt-6 border-t border-gray-200">
+                    <h3 class="text-sm font-semibold text-gray-900">Create Custom Category (Current Colocation)</h3>
+                    <form method="POST" action="{{ route('categories.store') }}" class="mt-4 flex gap-3">
+                        @csrf
+                        <input type="hidden" id="custom_colocation_id" name="colocation_id" value="{{ old('colocation_id', request('colocation', $selectedColocationId ?? '')) }}">
+                        <x-text-input
+                            id="custom_category_name"
+                            name="name"
+                            type="text"
+                            class="block w-full"
+                            placeholder="e.g., Cleaning, Parking"
+                            required
+                        />
+                        <x-primary-button type="submit">
+                            Add Category
+                        </x-primary-button>
+                    </form>
+                </div>
             </x-ui.card>
 
         </div>
     </div>
+
+    <script>
+        (function () {
+            const colocationSelect = document.getElementById('colocation_id');
+            const categorySelect = document.getElementById('category_id');
+            const customColocationInput = document.getElementById('custom_colocation_id');
+            const categoriesByColocation = {!! $categoriesJson ?: '{}' !!};
+            const selectedCategory = '{{ old('category_id') }}';
+
+            function renderCategories() {
+                const colocationId = colocationSelect.value;
+                customColocationInput.value = colocationId;
+
+                categorySelect.innerHTML = '<option value="">Select a category</option>';
+                if (!colocationId || !categoriesByColocation[colocationId]) {
+                    return;
+                }
+
+                categoriesByColocation[colocationId].forEach((category) => {
+                    const option = document.createElement('option');
+                    option.value = category.id;
+                    option.textContent = category.name;
+                    if (String(category.id) === String(selectedCategory)) {
+                        option.selected = true;
+                    }
+                    categorySelect.appendChild(option);
+                });
+            }
+
+            colocationSelect.addEventListener('change', renderCategories);
+            renderCategories();
+        })();
+    </script>
 </x-app-layout>

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('colocation_id')->constrained()->cascadeOnDelete();
             $table->foreignId('paid_by')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('category_id')->nullable()->constrained('categories')->nullOnDelete();
             $table->string('description');
             $table->decimal('amount', 10, 2);
             $table->timestamps();

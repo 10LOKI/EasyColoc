@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ColocationController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\AdminController;
 use Illuminate\Support\Facades\Route;
@@ -17,6 +18,7 @@ Route::middleware(['auth', 'verified', 'check.banned'])->group(function () {
     
     Route::resource('colocations', ColocationController::class);
     Route::resource('expenses', ExpenseController::class);
+    Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
     
     // Expense routes within colocations
     Route::post('/colocation/{colocation}/expenses',[ColocationController::class,'addExpense'])->name('colocations.expenses');
